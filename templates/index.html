@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <script src="{{ url_for('static', filename='js/lib/plotly-latest.min.js') }}"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>
+                <img src="{{ url_for('static', filename='images/icons/chart-line.svg') }}" class="icon icon-xl icon-primary" alt="Chart Icon">
+                <span>Graphing Tool</span>
+            </h1>
+            <p>Input files to post process logs or create interractive graphs</p>
+        </header>
+
+        <main class="main-content">
+            <!-- File Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <img src="{{ url_for('static', filename='images/icons/cloud-upload.svg') }}" class="upload-icon icon icon-3xl" alt="Upload Icon">
+                        <!-- <h3>Input File</h3> -->
+                        <p>File types are .csv, .txt, .log, .json, .zip</p>
+                        <p class="file-size-limit">Maximum file size: <span id="fileSizeLimit">1 GB</span></p>
+                        <input type="file" id="fileInput" accept=".csv, .txt, .log, .json, .zip" style="display: none;">
+                        <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                            <img src="{{ url_for('static', filename='images/icons/folder-open.svg') }}" class="icon icon-sm" alt="Browse Icon">
+                            Browse Files
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Section -->
+            <section class="config-section" id="configSection" style="display: none;">
+                <div class="config-header">
+                    <h2>
+                        <img src="{{ url_for('static', filename='images/icons/settings.svg') }}" class="icon icon-sm" alt="Settings Icon">
+                        Graph Configuration
+                    </h2>
+                    <button class="reset-btn" onclick="resetApp()">
+                        <img src="{{ url_for('static', filename='images/icons/refresh.svg') }}" class="icon icon-sm" alt="Reset Icon">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="config-grid">
+                    <!-- Graph Type Selection -->
+                    <div class="config-card">
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/chart-bar.svg') }}" class="icon icon-sm" alt="Chart Type Icon">
+                            Graph Type
+                        </h3>
+                        <select id="graphType" class="form-select" onchange="updateConfigFields()">
+                            <option value="">Select Graph Type</option>
+                            <option value="scatter">Scatter Plot</option>
+                            <option value="single_line">Single Axis Line Chart</option>
+                            <option value="dual_line">Dual Axis Line Chart</option>
+                            <option value="scatter_on_map">Scatter on Map</option>
+                            <option value="csv_joiner">CSV Joiner</option>
+                        </select>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="config-card instructions-card" id="instructionsCard">
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/info-circle.svg') }}" class="icon icon-sm" alt="Instructions Icon">
+                            Instructions
+                        </h3>
+                        <div class="instructions-content">
+                            <p> Once you select a graph type, configuration options will appear.  Each graph type has its own set of options.</p>
+                            <p>Configure the graph settings then click "Generate Graph"</p> 
+                        </div>
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/info-circle.svg') }}" class="icon icon-sm" alt="Options Icon">
+                            Options
+                        </h3>
+                        <div class="instructions-content">
+                            <p><strong>Scatter Plot (CSV):</strong> Graph one or multiple columns</p>
+                            <p><strong>Single Line Chart (CSV):</strong> Graph one or multiple columns</p>
+                            <p><strong>Dual Axis Line Chart (CSV):</strong> Graph 2 different Y axis ranges on the same plot</p>
+                            <p><strong>Scatter on Map (CSV):</strong> Takes in Lat/Lon and graphs on a map. Scales, colors and hover text can be adjusted</p>
+                            <p><strong>CSV Joiner (zip):</strong> Combines all CSVs uploaded based on specified column name, returns a singe csv </p>
+                            </div>
+                    </div>
+
+                    <!-- Column Selection -->
+                    <div class="config-card" id="columnSelection" style="display: none;">
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/columns.svg') }}" class="icon icon-sm" alt="Column Selection Icon">
+                            Column Selection
+                        </h3>
+                        <div id="columnFields">
+                            <!-- Dynamic column fields will be populated here -->
+                        </div>
+                        <div class="column-help">
+                            <small style="color: #b0b8c1; font-style: italic;">
+                                <img src="{{ url_for('static', filename='images/icons/info-circle.svg') }}" class="icon icon-sm" alt="Info Icon">
+                                Select multiple Y-axis columns to plot multiple data series on the same axis
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Styling Configuration -->
+                    <div class="config-card" id="stylingConfig" style="display: none;">
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/palette.svg') }}" class="icon icon-sm" alt="Styling Icon">
+                            Styling
+                        </h3>
+                        <div class="form-group">
+                            <label for="title">Graph Title</label>
+                            <input type="text" id="title" class="form-input" placeholder="Enter graph title">
+                        </div>
+                        <div class="form-group">
+                            <label for="xTitle">X-Axis Title</label>
+                            <input type="text" id="xTitle" class="form-input" placeholder="Enter X-axis title">
+                        </div>
+                        <div class="form-group" id="yTitleGroup">
+                            <label for="yTitle">Y-Axis Title</label>
+                            <input type="text" id="yTitle" class="form-input" placeholder="Enter Y-axis title">
+                        </div>
+                        <div class="form-group" id="y2TitleGroup" style="display: none;">
+                            <label for="y2Title">Y2-Axis Title</label>
+                            <input type="text" id="y2Title" class="form-input" placeholder="Enter Y2-axis title">
+                        </div>
+                        <div class="form-group">
+                            <div class="toggle-container">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="lightMode" class="toggle-input" onchange="updateToggleText()">
+                                    <span class="toggle-slider"></span>
+                                    <!-- <span class="toggle-text" id="toggleText">Dark Mode</span> -->
+                                </label>
+                                <span class="toggle-text" id="toggleText">Dark Mode</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Axis Range Configuration -->
+                    <div class="config-card" id="axisRangeConfig" style="display: none;">
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/ruler.svg') }}" class="icon icon-sm" alt="Axis Range Icon">
+                            Axis Range
+                        </h3>
+                        <div class="range-grid">
+                            <div class="form-group">
+                                <label for="xMin">X Min</label>
+                                <input type="number" id="xMin" class="form-input" placeholder="Auto">
+                            </div>
+                            <div class="form-group">
+                                <label for="xMax">X Max</label>
+                                <input type="number" id="xMax" class="form-input" placeholder="Auto">
+                            </div>
+                            <div class="form-group" id="yMinGroup">
+                                <label for="yMin">Y Min</label>
+                                <input type="number" id="yMin" class="form-input" placeholder="Auto">
+                            </div>
+                            <div class="form-group" id="yMaxGroup">
+                                <label for="yMax">Y Max</label>
+                                <input type="number" id="yMax" class="form-input" placeholder="Auto">
+                            </div>
+                            <div class="form-group" id="y2MinGroup" style="display: none;">
+                                <label for="y2Min">Y2 Min</label>
+                                <input type="number" id="y2Min" class="form-input" placeholder="Auto">
+                            </div>
+                            <div class="form-group" id="y2MaxGroup" style="display: none;">
+                                <label for="y2Max">Y2 Max</label>
+                                <input type="number" id="y2Max" class="form-input" placeholder="Auto">
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+                    <!-- Scatter on Map Configuration -->
+                    <div class="config-card" id="scatterMapConfig" style="display: none;">
+                        <h3>
+                            <img src="{{ url_for('static', filename='images/icons/globe.svg') }}" class="icon icon-sm" alt="Map Icon">
+                            Map Configuration
+                        </h3>
+                        <div class="form-group">
+                            <label for="mapTitle">Title</label>
+                            <input type="text" id="mapTitle" class="form-input" placeholder="Enter map title">
+                        </div>
+                        <div class="form-group">
+                            <label for="mapType">Map Type</label>
+                            <select id="mapType" class="form-select">
+                                <option value="satellite" selected>satellite</option>
+                                <option value="basic">basic</option>
+                                <option value="carto-darkmatter">carto-darkmatter</option>
+                                <option value="carto-darkmatter-nolabels">carto-darkmatter-nolabels</option>
+                                <option value="carto-positron">carto-positron</option>
+                                <option value="carto-positron-nolabels">carto-positron-nolabels</option>
+                                <option value="carto-voyager">carto-voyager</option>
+                                <option value="carto-voyager-nolabels">carto-voyager-nolabels</option>
+                                <option value="dark">dark</option>
+                                <option value="light">light</option>
+                                <option value="open-street-map">open-street-map</option>
+                                <option value="outdoors">outdoors</option>
+                                <option value="satellite-streets">satellite-streets</option>
+                                <option value="streets">streets</option>
+                                <option value="white-bg">white-bg</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="latitudeColumn">Latitude Column</label>
+                            <select id="latitudeColumn" class="form-select">
+                                <option value="">Select Latitude Column</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="longitudeColumn">Longitude Column</label>
+                            <select id="longitudeColumn" class="form-select">
+                                <option value="">Select Longitude Column</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="hoverColumns">Hover Values (Multiple)</label>
+                            <select id="hoverColumns" class="form-select" multiple>
+                            </select>
+                            <small style="color: #b0b8c1; font-style: italic;">
+                                Hold Ctrl/Cmd to select multiple columns for hover text
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="colorColumn">Color Column</label>
+                            <select id="colorColumn" class="form-select">
+                                <option value="">Select Color Column (Optional)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sizeColumn">Size Column</label>
+                            <select id="sizeColumn" class="form-select">
+                                <option value="">Select Size Column (Optional)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="generate-section">
+                    <button class="generate-btn" id="generateBtn" onclick="generateGraph()">
+                        <img src="{{ url_for('static', filename='images/icons/magic.svg') }}" class="icon icon-sm" alt="Generate Icon">
+                        Generate Graph
+                    </button>
+                </div>
+            </section>
+
+            <!-- Graph Display Section -->
+            <section class="graph-section" id="graphSection" style="display: none;">
+                <div class="graph-header">
+                    <h2>
+                        <img src="{{ url_for('static', filename='images/icons/chart-area.svg') }}" class="icon icon-sm" alt="Generated Graph Icon">
+                        Generated Graph
+                    </h2>
+                    <div class="graph-controls">
+                        <button class="control-btn" onclick="downloadGraph()">
+                            <img src="{{ url_for('static', filename='images/icons/download.svg') }}" class="icon icon-sm" alt="Download Icon">
+                            Download
+                        </button>
+                        <button class="control-btn" onclick="fullscreenGraph()">
+                            <img src="{{ url_for('static', filename='images/icons/expand.svg') }}" class="icon icon-sm" alt="Fullscreen Icon">
+                            Fullscreen
+                        </button>
+                    </div>
+                </div>
+                <div class="graph-container">
+                    <div id="graphDisplay"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Processing your data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

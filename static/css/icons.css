@@ -1,0 +1,140 @@
+/* Custom Icon Styles */
+.icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+/* For colored icons (like the header icon) */
+.icon-primary {
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(199deg) brightness(118%) contrast(119%);
+}
+
+.icon-sm {
+    width: 0.875em;
+    height: 0.875em;
+}
+
+.icon-lg {
+    width: 1.5em;
+    height: 1.5em;
+}
+
+.icon-xl {
+    width: 2em;
+    height: 2em;
+}
+
+.icon-2xl {
+    width: 3em;
+    height: 3em;
+}
+
+.icon-3xl {
+    width: 4em;
+    height: 4em;
+}
+
+/* Icon colors */
+.icon-primary {
+    color: #2196F3;
+}
+
+.icon-success {
+    color: #4CAF50;
+}
+
+.icon-warning {
+    color: #FF9800;
+}
+
+.icon-danger {
+    color: #f44336;
+}
+
+.icon-light {
+    color: #b0b8c1;
+}
+
+.icon-white {
+    color: #ffffff;
+}
+
+/* Icon animations */
+.icon-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Icon button styles */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 0.375rem;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+}
+
+/* Icon in text */
+.icon-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-text .icon {
+    flex-shrink: 0;
+}
+
+/* Icon in buttons */
+.browse-btn .icon,
+.generate-btn .icon,
+.reset-btn .icon,
+.control-btn .icon {
+    margin-right: 8px;
+}
+
+/* Icon in headers */
+h1 .icon,
+h2 .icon,
+h3 .icon {
+    flex-shrink: 0;
+}
+
+/* Ensure icons don't break layout */
+.icon {
+    min-width: 1em;
+    min-height: 1em;
+}
+
+/* Example: Using SVG as background image */
+.icon-bg-example {
+    width: 2em;
+    height: 2em;
+    background-image: url('../images/icons/chart-line.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}

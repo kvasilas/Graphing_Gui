@@ -4,7 +4,7 @@ echo "Starting CSV Graph Generator..."
 echo "Installing dependencies if needed..."
 
 # Install dependencies
-python3 -m pip install flask pandas plotly werkzeug python-dotenv
+pip3 install -r requirements.txt
 
 echo "Starting the application..."
 echo "Access the application at: http://localhost:5001"
