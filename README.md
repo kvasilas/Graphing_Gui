@@ -1,4 +1,4 @@
-# CSV Graph Generator
+# Graph Generator
 
 Interactive Flask web application for generating beautiful graphs from CSV data with drag-and-drop functionality and configurable styling options.
 
