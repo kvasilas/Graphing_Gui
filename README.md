@@ -18,19 +18,40 @@ Interactive Flask web application for generating beautiful graphs from CSV data 
 
 ## Installation
 
+### Option 1: Quick Setup with Scripts
+
+**On macOS/Linux:**
+```bash
+chmod +x deploy_setup.sh
+./deploy_setup.sh
+```
+
+**On Windows:**
+```cmd
+deploy_setup.bat
+```
+
+### Option 2: Manual Setup
+
 1. **Clone or download the project files**
 
-2. **Install Python dependencies**:
+2. **Create a virtual environment**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate.bat
+   ```
+
+3. **Install Python dependencies**:
    ```bash
    pip3 install -r requirements.txt
    ```
 
-3. **Run the application**:
+4. **Run the application**:
    ```bash
    python3 app.py
    ```
 
-4. **Access the application**:
+5. **Access the application**:
    - Open your browser and go to `http://localhost:5001`
    - The app will be available on your local network at `http://[your-ip]:5001`
 
