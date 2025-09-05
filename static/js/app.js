@@ -122,11 +122,13 @@ function showConfigSection() {
     configSection.style.display = 'block';
     graphSection.style.display = 'none';
     
-    // Ensure instructions are shown initially
-    updateConfigFields();
-    
     // Initialize toggle text
     updateToggleText();
+    
+    // Ensure instructions are shown initially (after elements are created)
+    setTimeout(() => {
+        updateConfigFields();
+    }, 100);
 }
 
 // Populate column dropdowns
@@ -323,17 +325,17 @@ function updateConfigFields() {
 
     }
 
-    // Reset dual axis specific visibility
-    y2Group.style.display = 'none';
-    y2TitleGroup.style.display = 'none';
-    y2MinGroup.style.display = 'none';
-    y2MaxGroup.style.display = 'none';
+    // Reset dual axis specific visibility (with null checks)
+    if (y2Group) y2Group.style.display = 'none';
+    if (y2TitleGroup) y2TitleGroup.style.display = 'none';
+    if (y2MinGroup) y2MinGroup.style.display = 'none';
+    if (y2MaxGroup) y2MaxGroup.style.display = 'none';
 
     if (graphType === 'dual_line') {
-        y2Group.style.display = 'block';
-        y2TitleGroup.style.display = 'block';
-        y2MinGroup.style.display = 'block';
-        y2MaxGroup.style.display = 'block';
+        if (y2Group) y2Group.style.display = 'block';
+        if (y2TitleGroup) y2TitleGroup.style.display = 'block';
+        if (y2MinGroup) y2MinGroup.style.display = 'block';
+        if (y2MaxGroup) y2MaxGroup.style.display = 'block';
     }
 
 
@@ -384,9 +386,15 @@ async function generateGraph() {
         const result = await response.json();
 
         if (result.success) {
-            currentGraph = JSON.parse(result.graph);
-            displayGraph(currentGraph);
-            showNotification('Graph generated successfully!', 'success');
+            if (result.message) {
+                // For scatter maps, show the success message
+                showNotification(result.message, 'success');
+            } else if (result.graph) {
+                // For regular graphs, display the graph
+                currentGraph = JSON.parse(result.graph);
+                displayGraph(currentGraph);
+                showNotification('Graph generated successfully!', 'success');
+            }
         } else {
             showNotification(result.error || 'Failed to generate graph', 'error');
         }
@@ -596,6 +604,21 @@ function showLoading(show) {
 
 // Show notification
 function showNotification(message, type = 'info') {
+    // Print to terminal (browser console)
+    switch (type) {
+        case 'success':
+            console.log(`[SUCCESS] ${message}`);
+            break;
+        case 'error':
+            console.error(`[ERROR] ${message}`);
+            break;
+        case 'warning':
+            console.warn(`[WARNING] ${message}`);
+            break;
+        default:
+            console.info(`[INFO] ${message}`);
+    }
+
     // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;

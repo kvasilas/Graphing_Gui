@@ -158,12 +158,16 @@ def generate_graph():
         elif graph_type == 'dual_line':
             fig = create_dual_line_chart(df, config)
         elif graph_type == 'scatter_on_map':
-            fig = scatter_on_map(df, config)
-
+            result = scatter_on_map_legacy(df, config)
+            # For scatter_on_map, we return a success message instead of a graph
+            if result == "Success":
+                return jsonify({'success': True, 'message': 'Scatter map generated successfully! Check the new window that opened.'})
+            else:
+                return jsonify({'error': 'Failed to generate scatter map'}), 400
         else:
             return jsonify({'error': 'Invalid graph type'}), 400
         
-        # Convert to JSON for frontend
+        # Convert to JSON for frontend (for regular graphs)
         graph_json = fig.to_json()
         return jsonify({'success': True, 'graph': graph_json})
         
@@ -177,7 +181,6 @@ def create_scatter_plot(df, config):
     x_title = config.get('x_title', x_col)
     y_title = config.get('y_title', 'Values')
     light_mode = config.get('light_mode', True)
-    
     fig = go.Figure()
         
     for i, y_col in enumerate(y_cols):
@@ -317,7 +320,7 @@ def create_dual_line_chart(df, config):
     
     return fig
 
-def scatter_on_map(df, config):
+def scatter_on_map_legacy(df, config):
     title = config.get('title', 'Scatter Plot on Map')
     map_type = config.get('map_type', 'satellite')
     lat_col = config.get('latitude_column')
@@ -326,68 +329,49 @@ def scatter_on_map(df, config):
     color_col = config.get('color_column')
     size_col = config.get('size_column')
     
-    #TODO impliment my own scatter on map functionality here.
-    # Create hover text from selected columns
-    hover_text = []
-    for i in range(len(df)):
-        text_parts = []
-        for col in hover_cols:
-            if col in df.columns:
-                text_parts.append(f"{col}: {df[col].iloc[i]}")
-        hover_text.append('<br>'.join(text_parts)) if text_parts else hover_text.append('')
-    
-    # Create the scatter mapbox
-    fig = go.Figure()
-    
-    scatter_kwargs = {
-        'lat': df[lat_col],
-        'lon': df[lon_col],
-        'mode': 'markers',
-        'marker': dict(
-            size=8,
-            opacity=0.7
-        ),
-        'name': 'Data Points',
-        'text': hover_text if hover_text else None,
-        'hovertemplate': '%{text}<extra></extra>' if hover_text else None
+    # Build parameters dynamically to avoid None/empty values
+    scatter_params = {
+        'lat': lat_col,
+        'lon': lon_col,
+        'size_max': 15,
+        'zoom': 10
     }
     
-    # Add color if specified
-    if color_col and color_col in df.columns:
-        scatter_kwargs['marker']['color'] = df[color_col]
-        scatter_kwargs['marker']['colorscale'] = 'Viridis'
-        scatter_kwargs['marker']['showscale'] = True
-        scatter_kwargs['marker']['colorbar'] = dict(title=color_col)
+    # Only add color if a valid column is selected
+    if color_col and color_col.strip() and color_col in df.columns:
+        scatter_params['color'] = color_col
+        scatter_params['color_continuous_scale'] = [(0, "red"), (0.5, "yellow"), (1, "green")]
+        scatter_params['range_color'] = [df[color_col].min(), df[color_col].max()]
     
-    # Add size if specified
-    if size_col and size_col in df.columns:
-        scatter_kwargs['marker']['size'] = df[size_col]
+    # Only add size if a valid column is selected
+    if size_col and size_col.strip() and size_col in df.columns:
+        scatter_params['size'] = size_col
     
-    fig.add_trace(go.Scattermapbox(**scatter_kwargs))
+    # Only add hover_data if columns are selected
+    if hover_cols and len(hover_cols) > 0:
+        scatter_params['hover_data'] = hover_cols
     
-    # Update layout
+    # Create the plot with only the parameters that have valid values
+    fig = px.scatter_map(df, **scatter_params)
+    
     fig.update_layout(
+        map_style=map_type,
         title=title,
-        mapbox=dict(
-            style=map_type,
-            center=dict(
-                lat=df[lat_col].mean(),
-                lon=df[lon_col].mean()
-            ),
-            zoom=3
-        ),
-        margin=dict(l=0, r=0, t=50, b=0),
-        height=600
     )
     
-    return fig
+    # Show the figure in a new window
+    fig.show()
+    
+    # Return a simple success message instead of the figure
+    # This will be displayed in the web interface
+    return "Success"
+
+
+def scatter_on_map(df, config):
+    pass
 
 def csv_joiner(filepath, config):
     pass
-
-
-    
-    #NOTE import the class here
     
 def ping_plotter(filepath, config):
     pass

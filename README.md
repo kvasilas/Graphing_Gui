@@ -57,8 +57,9 @@ deploy_setup.bat
 
 ## Offline Capability
 
-**This application works completely offline!**
+**This application works offline**
 
+- Caveat Packages and venv need to be installed the first time running it. 
 - All dependencies are included locally
 - Custom SVG icons instead of external icon libraries
 - No internet connection required after installation
